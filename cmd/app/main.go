@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"go_project_template/configs/db"
+	queueclient "go_project_template/configs/queue_client"
 	"go_project_template/configs/redis"
 	"go_project_template/internal/user"
 	"go_project_template/internal/user/controller"
@@ -10,6 +12,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-contrib/gzip"
 
@@ -79,6 +82,54 @@ func main() {
 
 	// cloudClient.ListBuckets(context.Background())
 
+	// Setup RabbitMQ Client
+	rabbitMQ := queueclient.NewRabbitMQ(queueclient.RabbitConfig{
+		Protocol:       "amqp",
+		Username:       "ardimr",
+		Password:       "ardimr123",
+		Host:           "localhost",
+		Port:           5672,
+		VHost:          "/",
+		ConnectionName: "notification.service",
+	})
+
+	if err := rabbitMQ.Connect(); err != nil {
+		log.Fatalln(err)
+	}
+	log.Println("Connected to RabbitMQ")
+	defer rabbitMQ.Close()
+
+	// Setup Publisher
+	publisher := queueclient.NewPublisher(
+		queueclient.PublisherConfig{
+			ExchangeName:   "",
+			ExchangeType:   "",
+			RoutingKey:     "",
+			PuublisherName: "NotificationPublisher",
+			PublisherCount: 1,
+			PrefetchCount:  1,
+			Reconnect: struct {
+				MaxAttempt int
+				Interval   time.Duration
+			}{
+				MaxAttempt: 10,
+				Interval:   1 * time.Second,
+			},
+		},
+		rabbitMQ,
+	)
+
+	err = publisher.QueueDeclare("mailQueue")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	ctx := context.Background()
+	err = publisher.Publish(ctx, "mailQueue", []byte("Hello this is publisher"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	// Setup REST Server
 	restServer := gin.New()
 	restServer.Use(gin.Recovery())
@@ -88,7 +139,7 @@ func main() {
 	// Setup Router
 	userRepository := repository.NewUserRepository(dbConnection)
 	userCache := repository.NewUserRedisRepository(redisClient)
-	userUseCase := usecase.NewUserUseCae(userRepository, userCache)
+	userUseCase := usecase.NewUserUseCae(userRepository, userCache, publisher)
 	userController := controller.NewUserController(userUseCase)
 	userRouter := user.NewRouter(userController)
 

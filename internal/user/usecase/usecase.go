@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	queueclient "go_project_template/configs/queue_client"
 	"go_project_template/internal/auth"
 	"go_project_template/internal/user/model"
 	"go_project_template/internal/user/repository"
@@ -26,12 +27,14 @@ type IUserUseCase interface {
 type UserUseCase struct {
 	userRepo  repository.IUserRepository
 	userCache repository.IUserRedisRepository
+	publisher *queueclient.Publisher
 }
 
-func NewUserUseCae(userRepo repository.IUserRepository, userCache repository.IUserRedisRepository) *UserUseCase {
+func NewUserUseCae(userRepo repository.IUserRepository, userCache repository.IUserRedisRepository, publisher *queueclient.Publisher) *UserUseCase {
 	return &UserUseCase{
 		userRepo:  userRepo,
 		userCache: userCache,
+		publisher: publisher,
 	}
 }
 
@@ -131,6 +134,12 @@ func (uc *UserUseCase) RequestNewOTP(ctx context.Context, email string) error {
 	expiration := time.Duration(5) * time.Minute
 
 	err = uc.userCache.SetUserOTP(ctx, otp, userOTPVerification, expiration)
+
+	if err != nil {
+		return err
+	}
+
+	err = uc.publisher.Publish(ctx, "mailQueue", []byte(email))
 
 	if err != nil {
 		return err
