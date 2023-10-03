@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -139,7 +140,13 @@ func (uc *UserUseCase) RequestNewOTP(ctx context.Context, email string) error {
 		return err
 	}
 
-	err = uc.publisher.Publish(ctx, "mailQueue", []byte(email))
+	publishPayload, err := json.Marshal(userOTPVerification)
+
+	if err != nil {
+		return err
+	}
+
+	err = uc.publisher.Publish(ctx, "mailQueue", publishPayload)
 
 	if err != nil {
 		return err
