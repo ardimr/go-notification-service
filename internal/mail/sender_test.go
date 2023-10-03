@@ -10,8 +10,8 @@ import (
 const CONFIG_SMTP_HOST = "smtp.gmail.com"
 const CONFIG_SMTP_PORT = 587
 const CONFIG_SENDER_NAME = "Rizky Ardi Maulana <rizkyardimaulana@gmail.com>"
-const CONFIG_AUTH_EMAIL = "rizkyardimaulana@gmail.com"
-const CONFIG_AUTH_PASSWORD = "dhqx oett wfav rimx"
+const CONFIG_AUTH_EMAIL = ""
+const CONFIG_AUTH_PASSWORD = ""
 
 func TestSendEmailWithGmail(t *testing.T) {
 	// Dial
@@ -32,7 +32,7 @@ func TestSendEmailWithGmail(t *testing.T) {
 	err := senderGmail.SendEmail(
 		"test mail",
 		"Hello, <b>This is a test email</b>",
-		[]string{"rizkyardi.entertainment@gmail.com"},
+		[]string{"fixenog400@estudys.com"},
 		[]string{},
 		[]string{},
 		[]string{},
