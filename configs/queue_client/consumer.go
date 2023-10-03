@@ -81,7 +81,7 @@ func (c *Consumer) Start(ctx context.Context) error {
 	deliveries, err := ch.Consume(
 		c.Config.QueueName, // Queue
 		"",                 // Consumer
-		true,               // Auto Ack
+		false,              // Auto Ack
 		false,              // Exclusive
 		false,              // No local
 		false,              // No Wait
@@ -110,8 +110,12 @@ func (c *Consumer) Start(ctx context.Context) error {
 						if err != nil {
 							log.Fatalln(err)
 						}
-						time.Sleep(3 * time.Second)
-						log.Println("Finish")
+
+						// Commit the delivery
+						ackErr := msg.Ack(false)
+						if ackErr != nil {
+							log.Fatalln(ackErr)
+						}
 					case <-ctx.Done():
 						log.Println("Stopped receiving message from queue")
 						err := ch.Close()
