@@ -4,13 +4,17 @@ import (
 	"context"
 	"fmt"
 	queueclient "go_project_template/configs/queue_client"
+	consumerhandler "go_project_template/internal/consumer_handler"
+	"go_project_template/internal/mail"
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/joho/godotenv"
+	"gopkg.in/gomail.v2"
 )
 
 func main() {
@@ -18,6 +22,28 @@ func main() {
 
 	// Load .env
 	godotenv.Load(".env")
+	fmt.Println(os.Getenv("CONFIG_AUTH_EMAIL"), os.Getenv("CONFIG_AUTH_PASSWORD"))
+	// Email Sender
+	gmailPort, err := strconv.Atoi(os.Getenv("CONFIG_SMTP_PORT"))
+	if err != nil {
+		log.Fatalln(err, "Failed to dial gmail")
+	}
+
+	gmailDialer := gomail.NewDialer(
+		os.Getenv("CONFIG_SMTP_HOST"),
+		gmailPort,
+		os.Getenv("CONFIG_AUTH_EMAIL"),
+		os.Getenv("CONFIG_AUTH_PASSWORD"),
+	)
+	emailSender := mail.NewGmailSender(
+		gmailDialer,
+		os.Getenv("CONFIG_SENDER_NAME"),
+		os.Getenv("CONFIG_AUTH_EMAIL"),
+		os.Getenv("CONFIG_AUTH_PASSWORD"),
+	)
+
+	// Consumer Handler
+	consumerHandler := consumerhandler.NewConsumerHandler(emailSender)
 
 	// Setup RabbitMQ Client
 	rabbitMQ := queueclient.NewRabbitMQ(queueclient.RabbitConfig{
@@ -55,10 +81,7 @@ func main() {
 				Interval:   1 * time.Second,
 			},
 		},
-		func(ctx context.Context, data []byte) error {
-			fmt.Println(string(data))
-			return nil
-		},
+		consumerHandler.SendEmail,
 		rabbitMQ,
 	)
 
