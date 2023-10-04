@@ -24,15 +24,15 @@ func NewConsumerHandler(sender mail.EmailSender) *ConsumerHandler {
 }
 
 func (ch *ConsumerHandler) SendEmail(ctx context.Context, data []byte) error {
-	var userOTPVerification model.UserOTPVerification
+	var userOTPVerificationEmailContent model.OTPVerificationEmailContent
 
-	if err := json.Unmarshal(data, &userOTPVerification); err != nil {
+	if err := json.Unmarshal(data, &userOTPVerificationEmailContent); err != nil {
 		return err
 	}
 
-	log.Println("Sending OTP Code to", userOTPVerification.Email)
+	log.Println("Sending OTP Code to", userOTPVerificationEmailContent.Email)
 
-	content := fmt.Sprintf("Your OTP Code is %s", userOTPVerification.OTPCode)
+	content := fmt.Sprintf(`Your OTP Code is %s or click <a href="%s">here</a>`, userOTPVerificationEmailContent.OTPCode, userOTPVerificationEmailContent.Url)
 	if err := ch.sender.SendEmail(
 		"OTP Request",
 		content,
