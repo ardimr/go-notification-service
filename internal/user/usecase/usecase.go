@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	queueclient "go_project_template/configs/queue_client"
@@ -20,7 +21,7 @@ type IUserUseCase interface {
 	UpdateUser(ctx context.Context, user model.User) (int64, error)
 	DeleteUser(ctx context.Context, id int64) error
 	RegisterUser(ctx context.Context, newUser model.User) error
-	VerifyOTP(ctx context.Context, otpCode string) error
+	VerifyOTP(ctx context.Context, otpCode string) (string, error)
 	UpdateEmailVerificationStatus(ctx context.Context, email string) error
 	RequestNewOTP(ctx context.Context, email string) error
 }
@@ -140,7 +141,13 @@ func (uc *UserUseCase) RequestNewOTP(ctx context.Context, email string) error {
 		return err
 	}
 
-	publishPayload, err := json.Marshal(userOTPVerification)
+	verificationEmailPayload := model.OTPVerificationEmailContent{
+		Email:   userOTPVerification.Email,
+		OTPCode: userOTPVerification.OTPCode,
+		Url:     fmt.Sprintf("http://localhost:8080/api/user-service/verify-otp?otp_code=%s", userOTPVerification.OTPCode),
+	}
+
+	publishPayload, err := json.Marshal(verificationEmailPayload)
 
 	if err != nil {
 		return err
@@ -155,25 +162,25 @@ func (uc *UserUseCase) RequestNewOTP(ctx context.Context, email string) error {
 	return nil
 }
 
-func (uc *UserUseCase) VerifyOTP(ctx context.Context, otpCode string) error {
+func (uc *UserUseCase) VerifyOTP(ctx context.Context, otpCode string) (string, error) {
 	// Get the user otp secret from cache
 	userOTP, err := uc.userCache.GetUserOTP(ctx, otpCode)
 	if err != nil {
-		return err
+		return userOTP.Email, err
 	}
 
 	if !utils.VerifyOTP(userOTP.Secret, otpCode) {
-		return errors.New("invalid.otp.code")
+		return userOTP.Email, errors.New("invalid.otp.code")
 	}
 
 	// Remove otp from cache
 	err = uc.userCache.RemoveUserOTP(ctx, otpCode)
 
 	if err != nil {
-		return err
+		return userOTP.Email, err
 	}
 
-	return nil
+	return userOTP.Email, nil
 }
 
 func (uc *UserUseCase) UpdateEmailVerificationStatus(ctx context.Context, email string) error {
