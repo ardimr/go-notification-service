@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	queueclient "go_project_template/configs/queue_client"
 	consumerhandler "go_project_template/internal/consumer_handler"
 	"go_project_template/internal/mail"
@@ -22,7 +21,7 @@ func main() {
 
 	// Load .env
 	godotenv.Load(".env")
-	fmt.Println(os.Getenv("CONFIG_AUTH_EMAIL"), os.Getenv("CONFIG_AUTH_PASSWORD"))
+
 	// Email Sender
 	gmailPort, err := strconv.Atoi(os.Getenv("CONFIG_SMTP_PORT"))
 	if err != nil {
@@ -73,6 +72,7 @@ func main() {
 			ConsumerName:  "notification",
 			ConsumerCount: 1,
 			PrefetchCount: 1,
+			Concurrency:   1,
 			Reconnect: struct {
 				MaxAttempt int
 				Interval   time.Duration
