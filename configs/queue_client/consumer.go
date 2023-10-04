@@ -17,6 +17,7 @@ type ConsumerConfig struct {
 	ConsumerName  string
 	ConsumerCount int
 	PrefetchCount int
+	Concurrency   int
 	Reconnect     struct {
 		MaxAttempt int
 		Interval   time.Duration
@@ -40,12 +41,29 @@ func NewConsumer(config ConsumerConfig, handler func(context.Context, []byte) er
 }
 
 func (c *Consumer) ExchangeDeclare() error {
+	ch, err := c.client.conn.Channel()
+
+	if err != nil {
+		return err
+	}
+	// Exchange Declaration
+	if err := ch.ExchangeDeclare(
+		c.Config.ExchangeName, // Name
+		c.Config.ExchangeType, // Type
+		false,                 // Durable
+		false,                 // Auto delete
+		false,                 // Internal
+		false,                 // No Wait
+		nil,                   // Arguments
+	); err != nil {
+		return err
+	}
 	return nil
 }
 
-var wg *sync.WaitGroup = &sync.WaitGroup{}
-
 func (c *Consumer) Start(ctx context.Context) error {
+	var wg *sync.WaitGroup = &sync.WaitGroup{}
+
 	c.done = make(chan struct{})
 
 	ch, err := c.client.conn.Channel()
@@ -94,10 +112,10 @@ func (c *Consumer) Start(ctx context.Context) error {
 
 	var forever chan struct{}
 
-	wg.Add(1)
+	wg.Add(c.Config.Concurrency)
 	go func() {
 		defer close(c.done)
-		for i := 0; i < 1; i++ {
+		for i := 0; i < c.Config.Concurrency; i++ {
 			go func(deliveries <-chan amqp.Delivery) {
 				defer wg.Done()
 				for {
@@ -145,5 +163,5 @@ func (c *Consumer) Channel() (*amqp.Channel, error) {
 func (c *Consumer) Stop() {
 	log.Println("Waiting for workers to finish")
 	<-c.done
-	log.Println("Stopping consumer ...")
+	log.Println("Consumer is stopped ...")
 }
