@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"go_project_template/configs/db"
 	queueclient "go_project_template/configs/queue_client"
 	"go_project_template/configs/redis"
@@ -120,12 +119,6 @@ func main() {
 	)
 
 	err = publisher.QueueDeclare("mailQueue")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	ctx := context.Background()
-	err = publisher.Publish(ctx, "mailQueue", []byte("Hello this is publisher"))
 	if err != nil {
 		log.Fatalln(err)
 	}
