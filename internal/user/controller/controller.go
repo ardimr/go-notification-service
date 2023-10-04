@@ -191,14 +191,15 @@ func (controller *UserController) UserRegistration(ctx *gin.Context) {
 }
 
 func (controller *UserController) VerifyOTP(ctx *gin.Context) {
-	var reqBody model.UserOTPVerification
-
-	if err := ctx.ShouldBindJSON(&reqBody); err != nil {
+	// var reqBody model.UserOTPVerification
+	var reqParam model.UserOTPVerificationParam
+	if err := ctx.ShouldBindQuery(&reqParam); err != nil {
 		ctx.AbortWithStatusJSON(exception.ErrorResponse(err))
 		return
 	}
 
-	err := controller.userUseCase.VerifyOTP(ctx, reqBody.OTPCode)
+	email, err := controller.userUseCase.VerifyOTP(ctx, reqParam.OTPCode)
+
 	if err != nil {
 		ctx.AbortWithStatusJSON(exception.ErrorResponse(err))
 		return
@@ -206,7 +207,7 @@ func (controller *UserController) VerifyOTP(ctx *gin.Context) {
 
 	// OTP is verified, Mark the user's email address as verified in the database
 
-	err = controller.userUseCase.UpdateEmailVerificationStatus(ctx, reqBody.Email)
+	err = controller.userUseCase.UpdateEmailVerificationStatus(ctx, email)
 	if err != nil {
 		ctx.AbortWithStatusJSON(exception.ErrorResponse(err))
 		return
