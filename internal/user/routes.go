@@ -30,6 +30,6 @@ func (router *Router) userRoutes(superRoute *gin.RouterGroup) {
 	userRouter.DELETE("/users/:id", router.controller.DeleteUser)
 
 	userRouter.POST("/signup", router.controller.UserRegistration)
-	userRouter.POST("/verify-otp", router.controller.VerifyOTP)
+	userRouter.GET("/verify-otp", router.controller.VerifyOTP)
 	userRouter.POST("/request-otp", router.controller.RequestOTP)
 }
