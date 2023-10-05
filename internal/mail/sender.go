@@ -1,8 +1,12 @@
 package mail
 
 import (
+	"html/template"
 	"log"
+	"net/http"
+	"path"
 
+	"github.com/gin-gonic/gin"
 	"gopkg.in/gomail.v2"
 )
 
@@ -54,4 +58,28 @@ func (sender *GmailSender) SendEmail(
 	log.Println("Mail sent!")
 
 	return err
+}
+
+func RenderTemplate(ctx *gin.Context) {
+	filepath := path.Join("/home/ardimr/workspace/portfolio/go_notification_service/internal/template", "confirm-email.html")
+
+	tmpl, err := template.ParseFiles(filepath)
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		return
+	}
+
+	data := map[string]interface{}{
+		"Product": "Mata Duitan",
+		"OTPCode": "123456",
+		"URL":     "http://localhost:8080/api/verify-otp?otp_code=123456",
+	}
+
+	err = tmpl.Execute(ctx.Writer, data)
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+		return
+	}
 }

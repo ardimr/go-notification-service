@@ -4,6 +4,7 @@ import (
 	"go_project_template/configs/db"
 	queueclient "go_project_template/configs/queue_client"
 	"go_project_template/configs/redis"
+	"go_project_template/internal/mail"
 	"go_project_template/internal/user"
 	"go_project_template/internal/user/controller"
 	"go_project_template/internal/user/repository"
@@ -137,6 +138,8 @@ func main() {
 	userRouter := user.NewRouter(userController)
 
 	userRouter.AddRoute(restServer.Group("/api"))
+
+	restServer.GET("/mail", mail.RenderTemplate)
 	restServer.Run("localhost:8080")
 
 }
