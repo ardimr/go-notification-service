@@ -69,6 +69,7 @@
 * [![Golang][Golang]][Golang-url]
 * [![Postgres][Postgres]][Postgres-url]
 * [![Redis][Redis]][Redis-url]
+* [![RabbitMQ][RabbitMQ]][RabbitMQ-url]
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
