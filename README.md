@@ -6,10 +6,10 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a> -->
 
-  <h3 align="center">Golang Project Template</h3>
+  <h3 align="center">Golang Notification Service</h3>
 
   <p align="center">
-    A simple template for golang project.
+    A simple notification service which can send email notification to users. This notification service is developed with event-driven pattern and written in Golang.
     <br />
     <!-- <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a> -->
     <br />
@@ -21,8 +21,6 @@
     <!-- <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature</a> -->
   </p>
 </div>
-
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -54,7 +52,15 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
+This project is a simple notification service implemented in Golang, designed to efficiently deliver notifications to users using an event-driven pattern. This service is built with event drivent architecture where it consumes notification events from message queue/bus, ensuring timely and reliable delivery of notifications. In the example, the notification service focuses on sending emails to users, but it can be easily extended to support other notification methods.
 
+In this example, we demonstrate a user registration which needs an email verification process. The flow is as follow:
+1. A service, for example, user management service receives a user registration request.
+2. The user management service generates a OTP code for email verification and wants to send it to the user’s registered email
+3. The user management service publishes an event to message broker alongside the information to be sent
+4. The event is queued in the message broker and waits to be consumed
+5. The Notification Service consume the event and proceed the event
+6. The Notification service send an email to the user
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
 
@@ -85,13 +91,12 @@
 * Make
 * Redis
 * PostgreSQL
+* RabbitMQ
   <!-- ```sh
   npm install npm@latest -g
   ``` -->
 
 ### Installation
-
-
 
 1. Clone the repo
    ```sh
@@ -111,11 +116,27 @@
 
 
 <!-- USAGE EXAMPLES -->
-## Usage
+## Usage Examples
+### User Registration
+#### POST http://localhost:8080/api/user-service/signup
+```
+{
+    "fullname" : "John Doe",
+    "email" : "john.doe@mail.com",
+    "password" : "john.doe#wir321"
+}
+```
+<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
+### OTP Request
+### POST http://localhost:8080/api/user-service/request-otp
+```
+{
+    "email" : "john.doe@mail.com"
+}
+```
+Check the email's inbox and it should have email like this
 
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
+<img src=assets/email_verification.jpeg />
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -225,3 +246,5 @@ Use this space to list resources you find helpful and would like to give credit 
 [Redis-url]: https://redis.io/
 [Postgres]: https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white
 [Postgres-url]: https://www.postgresql.org/
+[RabbitMQ-url]: https://www.rabbitmq.com/
+[RabbitMQ]: https://img.shields.io/badge/Rabbitmq-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white
