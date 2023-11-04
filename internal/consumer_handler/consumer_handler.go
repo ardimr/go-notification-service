@@ -50,7 +50,7 @@ func (ch *ConsumerHandler) SendEmail(ctx context.Context, data []byte) error {
 	if err := ch.sender.SendEmail(
 		"OTP Request",
 		content,
-		[]string{"fixenog400@estudys.com"},
+		[]string{userOTPVerificationEmailContent.Email},
 		[]string{},
 		[]string{},
 		[]string{},
