@@ -61,6 +61,11 @@ In this example, we demonstrate a user registration which needs an email verific
 4. The event is queued in the message broker and waits to be consumed
 5. The Notification Service consume the event and proceed the event
 6. The Notification service send an email to the user
+
+### Overall Architecture
+The overall architecture is shown on the image below:
+
+<img src = assets/overall_architecture.png />
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
 
