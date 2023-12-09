@@ -12,6 +12,6 @@ RUN go build -o main cmd/notification/main.go
 
 FROM alpine:3.17 as runner
 WORKDIR /run
-COPY --from=builder /notification/main /run/main
+COPY --from=builder /app/main /run/main
 EXPOSE 8080
 ENTRYPOINT ["./main"]
