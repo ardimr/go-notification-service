@@ -215,6 +215,7 @@ func (controller *UserController) VerifyOTP(ctx *gin.Context) {
 
 	ctx.Status(http.StatusOK)
 }
+
 func (controller *UserController) RequestOTP(ctx *gin.Context) {
 	var reqBody model.UserOTPRequest
 	if err := ctx.ShouldBindJSON(&reqBody); err != nil {

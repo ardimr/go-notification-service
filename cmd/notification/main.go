@@ -23,6 +23,7 @@ func main() {
 	godotenv.Load(".env")
 
 	// Email Sender
+	log.Println("Setting Up Email Sender ...")
 	gmailPort, err := strconv.Atoi(os.Getenv("CONFIG_SMTP_PORT"))
 	if err != nil {
 		log.Fatalln(err, "Failed to dial gmail")
@@ -40,11 +41,14 @@ func main() {
 		os.Getenv("CONFIG_AUTH_EMAIL"),
 		os.Getenv("CONFIG_AUTH_PASSWORD"),
 	)
+	log.Println("Email Sender OK!")
 
 	// Consumer Handler
+	log.Println("Setting up consumer ...")
 	consumerHandler := consumerhandler.NewConsumerHandler(emailSender)
 
 	// Setup RabbitMQ Client
+	log.Panicln("Connecting to RabbitMQ...")
 	rabbitMQ := queueclient.NewRabbitMQ(queueclient.RabbitConfig{
 		Protocol:       "amqp",
 		Username:       "ardimr",
@@ -65,11 +69,11 @@ func main() {
 	// Setup consumer
 	consumer := queueclient.NewConsumer(
 		queueclient.ConsumerConfig{
-			ExchangeName:  "",
-			ExchangeType:  "",
-			RoutingKey:    "",
-			QueueName:     "mailQueue",
-			ConsumerName:  "notification",
+			ExchangeName:  os.Getenv("RABBITMQ_CONSUMER_EXCHANGE_NAME"),
+			ExchangeType:  os.Getenv("RABBITMQ_CONSUMER_EXCHANGE_TYPE"),
+			RoutingKey:    os.Getenv("RABBITMQ_CONSUMER_ROUTING_KEY"),
+			QueueName:     os.Getenv("RABBITMQ_QUEUE_NAME"),
+			ConsumerName:  os.Getenv("notification"),
 			ConsumerCount: 1,
 			PrefetchCount: 1,
 			Concurrency:   1,
@@ -91,6 +95,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Start consumer
+	log.Println("Running consumer...")
 	go func(ctx context.Context) {
 		if err := consumer.Start(ctx); err != nil {
 			log.Fatalln("Unable to start consumer")
@@ -98,11 +103,11 @@ func main() {
 	}(ctx)
 
 	defer func() {
-		log.Println("Preparing to stop")
+		log.Println("Preparing to stop consumer")
 		cancel()
 		consumer.Stop()
 	}()
 	// Wait for OS exit signal
 	<-exit
-	log.Println("Got exit signal")
+	log.Println("Got exit signal. Exiting ...")
 }

@@ -59,38 +59,16 @@ func main() {
 		log.Fatalln("Failed to connect redis")
 	}
 
-	// Setup Cloud Storage
-	// var cloudClient cloudstorage.CloudStorageInterface
-
-	// cloudStorageUseSSL, err := strconv.ParseBool(os.Getenv("CLOUD_STORAGE_USE_SSL"))
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	// minioClient, err := cloudstorage.NewMinioClient(
-	// 	os.Getenv("CLOUD_STORAGE_ENDPOINT"),
-	// 	os.Getenv("CLOUD_STORAGE_ACCESS_KEY"),
-	// 	os.Getenv("CLOUD_STORAGE_SECRET_KEY"),
-	// 	cloudStorageUseSSL,
-	// )
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	// // Use minio as cloud client
-	// cloudClient = minioClient
-
-	// cloudClient.ListBuckets(context.Background())
-
 	// Setup RabbitMQ Client
+	rabbitMQPort, _ := strconv.Atoi(os.Getenv("RABBITMQ_PORT"))
 	rabbitMQ := queueclient.NewRabbitMQ(queueclient.RabbitConfig{
-		Protocol:       "amqp",
-		Username:       "ardimr",
-		Password:       "ardimr123",
-		Host:           "localhost",
-		Port:           5672,
-		VHost:          "/",
-		ConnectionName: "notification.service",
+		Protocol:       os.Getenv("RABBITMQ_PROTOCOL"),
+		Username:       os.Getenv("RABBITMQ_USERNAME"),
+		Password:       os.Getenv("RABBITMQ_PASSWORD"),
+		Host:           os.Getenv("RABBITMQ_HOST"),
+		Port:           rabbitMQPort,
+		VHost:          os.Getenv("RABBITMQ_VHOST"),
+		ConnectionName: os.Getenv("RABBITMQ_CONNECTION_NAME"),
 	})
 
 	if err := rabbitMQ.Connect(); err != nil {
@@ -105,7 +83,7 @@ func main() {
 			ExchangeName:   "",
 			ExchangeType:   "",
 			RoutingKey:     "",
-			PuublisherName: "NotificationPublisher",
+			PuublisherName: os.Getenv("RABBITMQ_PUBLISHER_NAME"),
 			PublisherCount: 1,
 			PrefetchCount:  1,
 			Reconnect: struct {
