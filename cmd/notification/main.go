@@ -48,7 +48,7 @@ func main() {
 	consumerHandler := consumerhandler.NewConsumerHandler(emailSender)
 
 	// Setup RabbitMQ Client
-	log.Panicln("Connecting to RabbitMQ...")
+	log.Println("Connecting to RabbitMQ...")
 	rabbitMQ := queueclient.NewRabbitMQ(queueclient.RabbitConfig{
 		Protocol:       "amqp",
 		Username:       "ardimr",
