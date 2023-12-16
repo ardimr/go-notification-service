@@ -8,7 +8,7 @@ import (
 	"go_project_template/internal/user/model"
 	"html/template"
 	"log"
-	"path"
+	"os"
 )
 
 type IConsumerHandler interface {
@@ -37,7 +37,7 @@ func (ch *ConsumerHandler) SendEmail(ctx context.Context, data []byte) error {
 	// content := fmt.Sprintf(`Your OTP Code is %s or click <a href="%s">here</a>`, userOTPVerificationEmailContent.OTPCode, userOTPVerificationEmailContent.Url)
 
 	temp := map[string]interface{}{
-		"Product": "Mata Duitan",
+		"Product": os.Getenv("PRODUCT_NAME"),
 		"OTPCode": userOTPVerificationEmailContent.OTPCode,
 		"URL":     userOTPVerificationEmailContent.Url,
 	}
@@ -62,8 +62,8 @@ func (ch *ConsumerHandler) SendEmail(ctx context.Context, data []byte) error {
 }
 
 func RenderTemplate(data map[string]interface{}) (string, error) {
-	filepath := path.Join("/home/ardimr/workspace/portfolio/go_notification_service/internal/template", "confirm-email.html")
-
+	// filepath := path.Join("/home/ardimr/workspace/portfolio/go_notification_service/internal/template", "confirm-email.html")
+	filepath := os.Getenv("EMAIL_TEMPLATE_PATH")
 	tmpl, err := template.ParseFiles(filepath)
 
 	if err != nil {
